@@ -38,6 +38,7 @@ export default function ClientDashboard() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     let next = links;
+
     if (term) {
       next = links.filter(
         (link) =>
@@ -45,9 +46,11 @@ export default function ClientDashboard() {
           link.url.toLowerCase().includes(term)
       );
     }
+
     if (sort === "clicks") {
       return [...next].sort((a, b) => b.clicks - a.clicks);
     }
+
     return [...next].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -55,6 +58,8 @@ export default function ClientDashboard() {
   }, [links, search, sort]);
 
   async function handleCreate(payload: CreatePayload) {
+    setFlash(null);
+
     const response = await fetch("/api/links", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,6 +80,10 @@ export default function ClientDashboard() {
   }
 
   async function handleDelete(code: string) {
+    if (!confirm(`Delete short link "${code}"?`)) return;
+
+    setFlash(null);
+
     const response = await fetch(`/api/links/${code}`, { method: "DELETE" });
     if (!response.ok) {
       const body = await response.json();
@@ -119,7 +128,7 @@ export default function ClientDashboard() {
             </p>
           </div>
           <Link
-            href="https://github.com/Raj-232/TinyLink-NextJs.git"
+            href="https://github.com/karthickmohan221/tinylink"
             target="_blank"
             className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900"
           >
@@ -169,8 +178,7 @@ export default function ClientDashboard() {
                 <button
                   type="button"
                   onClick={() => setSort("clicks")}
-                  className={`rounded-full p
-  constx-3 py-1 ${
+                  className={`rounded-full px-3 py-1 ${
                     sort === "clicks"
                       ? "bg-slate-900 text-white"
                       : "text-slate-500"
@@ -203,13 +211,13 @@ export default function ClientDashboard() {
                 </svg>
                 Refresh
               </button>
-              <Link
+              {/* <Link
                 href="/healthz"
                 className="text-sm font-medium text-slate-500 hover:text-slate-900"
                 target="_blank"
               >
                 Health check
-              </Link>
+              </Link> */}
             </div>
           </div>
 
@@ -246,11 +254,11 @@ export default function ClientDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {isLoading && (
-                    <TableMessage message="Loading links..." />
-                  )}
+                  {isLoading && <TableMessage message="Loading links..." />}
                   {!isLoading && filtered.length === 0 && (
-                    <TableMessage message={`No links ${search ? "match" : "yet"}`} />
+                    <TableMessage
+                      message={`No links ${search ? "match" : "yet"}`}
+                    />
                   )}
                   {filtered.map((link) => (
                     <tr
@@ -263,9 +271,13 @@ export default function ClientDashboard() {
                       <td className="px-4 py-4 text-slate-500">
                         <span className="line-clamp-2">{link.url}</span>
                       </td>
-                      <td className="px-4 py-4 font-semibold">{link.clicks}</td>
+                      <td className="px-4 py-4 font-semibold">
+                        {link.clicks}
+                      </td>
                       <td className="px-4 py-4 text-sm text-slate-500">
-                        {fromNow(link.lastClicked)}
+                        {link.lastClicked
+                          ? fromNow(link.lastClicked)
+                          : "Never"}
                       </td>
                       <td className="px-4 py-4 text-right text-xs font-medium text-slate-500">
                         <div className="flex flex-wrap justify-end gap-2">
@@ -288,7 +300,7 @@ export default function ClientDashboard() {
                             href={`/${link.code}`}
                             className="rounded-full border border-slate-200 px-3 py-1 text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
                           >
-                            test
+                            Test
                           </Link>
                           <button
                             type="button"
@@ -406,7 +418,15 @@ function CreateLinkCard({ onCreate }: CreateCardProps) {
 
 function SnapshotCard({ links }: { links: LinkRecord[] }) {
   const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
-  const recent = links[0];
+
+  const recent = useMemo(() => {
+    if (!links.length) return undefined;
+    return [...links].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+  }, [links]);
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-900 px-6 py-8 text-white shadow-lg">
       <p className="text-sm uppercase tracking-[0.3em] text-slate-300">
@@ -430,7 +450,8 @@ function SnapshotCard({ links }: { links: LinkRecord[] }) {
           <p className="mt-2 font-mono text-lg">{recent.code}</p>
           <p className="line-clamp-2 text-sm text-slate-200">{recent.url}</p>
           <p className="mt-2 text-xs text-slate-300">
-            Last clicked {fromNow(recent.lastClicked)}
+            Last clicked{" "}
+            {recent.lastClicked ? fromNow(recent.lastClicked) : "Never"}
           </p>
         </div>
       ) : (
@@ -454,4 +475,3 @@ function TableMessage({ message }: { message: string }) {
     </tr>
   );
 }
-
