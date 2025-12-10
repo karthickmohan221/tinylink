@@ -26,13 +26,13 @@ TinyLink is a take-home friendly URL shortener inspired by bit.ly. It lets you c
    cp .env.example .env.local
    ```
    - `DATABASE_URL`: Postgres connection string (Neon recommended)
-   - `NEXT_PUBLIC_BASE_URL`: public URL (e.g. `https://tinylink.vercel.app`)
+   - `NEXT_PUBLIC_BASE_URL`: public URL (e.g. `https://tinylink-wheat-nine.vercel.app`)
 2. Install dependencies and run the dev server:
    ```bash
    npm install
    npm run dev
    ```
-3. Visit `http://localhost:3000` for the dashboard, `http://localhost:3000/healthz` for the health check.
+3. Visit `http://localhost:3000` for the dashboard, `http://localhost:3000/api/healthz` for the health check.
 
 > The first database query automatically ensures the `links` table exists, so a dedicated migration step is optional for quick starts. For production, run the `CREATE TABLE` statement from `lib/db.ts` manually or via your preferred migration tool.
 
@@ -44,7 +44,7 @@ TinyLink is a take-home friendly URL shortener inspired by bit.ly. It lets you c
 ### Testing checklist
 | Scenario | How to verify |
 | --- | --- |
-| Health check | `curl https://<host>/healthz` returns 200 with JSON body |
+| Health check | `curl https://<host>/api/healthz` returns 200 with JSON body |
 | Create link | POST `/api/links` with `{ "url": "https://example.com" }` |
 | Duplicate rejection | Repeat POST with a custom `code` to trigger 409 |
 | Redirect increments | Open `/:code` repeatedly, stats page updates clicks/last clicked |
