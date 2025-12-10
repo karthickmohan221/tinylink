@@ -211,13 +211,6 @@ export default function ClientDashboard() {
                 </svg>
                 Refresh
               </button>
-              {/* <Link
-                href="/healthz"
-                className="text-sm font-medium text-slate-500 hover:text-slate-900"
-                target="_blank"
-              >
-                Health check
-              </Link> */}
             </div>
           </div>
 
@@ -293,14 +286,6 @@ export default function ClientDashboard() {
                             className="rounded-full border border-slate-200 px-3 py-1 text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
                           >
                             Stats
-                          </Link>
-                          <Link
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            href={`/${link.code}`}
-                            className="rounded-full border border-slate-200 px-3 py-1 text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
-                          >
-                            Test
                           </Link>
                           <button
                             type="button"
