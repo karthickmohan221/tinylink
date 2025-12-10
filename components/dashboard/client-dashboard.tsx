@@ -211,6 +211,14 @@ export default function ClientDashboard() {
                 </svg>
                 Refresh
               </button>
+                 <Link
+                href="/api/healthz"
+                className="text-sm font-medium text-slate-500 hover:text-slate-900"
+                target="_blank"
+                onClick={() => mutate()}
+              >
+                Health check
+              </Link>
             </div>
           </div>
 
