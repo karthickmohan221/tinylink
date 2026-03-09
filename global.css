@@ -1,0 +1,53 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ad styles */
+.ad-container {
+  @apply relative z-10 transition-all duration-300;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.ad-container:hover {
+  @apply shadow-md;
+  transform: translateY(-2px);
+}
+
+/* Hide empty ads */
+ins.adsbygoogle[data-ad-status="unfilled"] {
+  display: none !important;
+}
+
+/* Responsive ad containers */
+@media (max-width: 640px) {
+  .ad-container {
+    min-height: 100px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .ad-container {
+    min-height: 120px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .ad-container {
+    min-height: 250px;
+  }
+}
+
+/* Loading animation for ads */
+.ad-container::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+  transform: translateX(-100%);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
