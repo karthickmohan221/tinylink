@@ -34,17 +34,16 @@ export default function ClientDashboard() {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const { data, error, isLoading, mutate } = useSWR<{ links: LinkRecord[] }>(
     "/api/links",
-    fetcher
+    fetcher,
   );
 
   const links = useMemo(() => data?.links ?? [], [data]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <AdUnit
-          adSlot={AD_SLOTS.TOP_BANNER} 
+          adSlot={AD_SLOTS.TOP_BANNER}
           adFormat="horizontal"
           className="my-6"
         />
@@ -53,13 +52,9 @@ export default function ClientDashboard() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid gap-8 lg:grid-cols-[1fr,1.2fr] mb-8">
           <CreateLinkCard mutate={mutate} />
-          <SnapshotCard links={links} />
-        </div>
-
-        <div className="my-6">
           <InFeedAd adSlot={AD_SLOTS.IN_FEED} />
         </div>
-
+        \{" "}
         <LinksTable
           links={links}
           baseUrl={baseUrl}
@@ -68,12 +63,15 @@ export default function ClientDashboard() {
           mutate={mutate}
           setQrCode={setQrCode}
         />
+        <div className="my-6">
+          <SnapshotCard links={links} />
+        </div>
       </div>
 
       {/* Middle Banner Ad */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <AdUnit 
-          adSlot={AD_SLOTS.BETWEEN_SECTIONS} 
+        <AdUnit
+          adSlot={AD_SLOTS.BETWEEN_SECTIONS}
           adFormat="rectangle"
           className="my-8"
         />
@@ -87,8 +85,8 @@ export default function ClientDashboard() {
 
       {/* Bottom Banner Ad */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <AdUnit 
-          adSlot={AD_SLOTS.BOTTOM_BANNER} 
+        <AdUnit
+          adSlot={AD_SLOTS.BOTTOM_BANNER}
           adFormat="horizontal"
           className="my-8"
         />

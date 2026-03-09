@@ -37,7 +37,7 @@ async function generateUniqueCode(attempts = 5): Promise<string> {
 
 export async function listLinks(): Promise<LinkRecord[]> {
   const { rows } = await query<LinkRow>(
-    "SELECT * FROM links ORDER BY created_at DESC, code ASC"
+    "SELECT * FROM links ORDER BY created_at DESC, code ASC",
   );
   return rows.map(mapRow);
 }
@@ -48,46 +48,65 @@ export async function getLink(code: string): Promise<LinkRecord | null> {
   }
   const { rows } = await query<LinkRow>(
     "SELECT * FROM links WHERE code = $1 LIMIT 1",
-    [code]
+    [code],
   );
   return rows.length ? mapRow(rows[0]) : null;
 }
 
 export async function createLink(
-  input: LinkInput
+  input: LinkInput,
 ): Promise<{ link?: LinkRecord; conflict?: boolean }> {
-  const code = input.code?.trim() || (await generateUniqueCode());
+  let code = input.code?.trim();
 
-  try {
-    const { rows } = await query<LinkRow>(
-      "INSERT INTO links (code, url) VALUES ($1, $2) RETURNING *",
-      [code, input.url]
-    );
-    return { link: mapRow(rows[0]) };
-  } catch (error) {
-    if ((error as { code?: string })?.code === "23505") {
-      return { conflict: true };
-    }
-    throw error;
+  // If no custom code, generate one
+  if (!code) {
+    code = await generateUniqueCode();
   }
+
+  for (let i = 0; i < 5; i++) {
+    try {
+      const { rows } = await query<LinkRow>(
+        "INSERT INTO links (code, url) VALUES ($1, $2) RETURNING *",
+        [code, input.url],
+      );
+
+      return { link: mapRow(rows[0]) };
+    } catch (error) {
+      // Unique constraint violation
+      if ((error as { code?: string })?.code === "23505") {
+        // If user gave custom code → return conflict
+        if (input.code) {
+          return { conflict: true };
+        }
+
+        // Otherwise generate a new one and retry
+        code = await generateUniqueCode();
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Failed to generate unique code");
 }
 
 export async function deleteLink(code: string): Promise<boolean> {
-  const { rowCount } = await query<LinkRow>("DELETE FROM links WHERE code = $1", [code]);
+  const { rowCount } = await query<LinkRow>(
+    "DELETE FROM links WHERE code = $1",
+    [code],
+  );
   return rowCount ? rowCount > 0 : false;
 }
 
-export async function incrementClick(
-  code: string
-): Promise<LinkRecord | null> {
+export async function incrementClick(code: string): Promise<LinkRecord | null> {
   const { rows } = await query<LinkRow>(
     `UPDATE links
      SET clicks = clicks + 1,
          last_clicked = NOW()
      WHERE code = $1
      RETURNING *`,
-    [code]
+    [code],
   );
   return rows.length ? mapRow(rows[0]) : null;
 }
-

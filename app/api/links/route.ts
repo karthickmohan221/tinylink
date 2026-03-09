@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createLinkSchema } from "@/lib/validation";
 import { createLink, listLinks } from "@/lib/links";
 
 export async function GET() {
@@ -18,25 +17,18 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
-    const parsed  = createLinkSchema.safeParse(payload);
 
-    if (!parsed.success) {
+    if (!payload?.url) {
       return NextResponse.json(
-        { error: parsed.error.message ?? "Invalid input" },
+        { error: "URL is required" },
         { status: 400 }
       );
     }
 
-    const { link, conflict } = await createLink(parsed.data);
-
-    if (conflict) {
-      return NextResponse.json(
-        { error: "Code already exists" },
-        { status: 409 }
-      );
-    }
+    const link = await createLink({ url: payload.url });
 
     return NextResponse.json({ link }, { status: 201 });
+
   } catch (error) {
     console.error("Failed to create link", error);
     return NextResponse.json(
@@ -45,4 +37,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
