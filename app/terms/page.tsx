@@ -3,8 +3,11 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Terms of Use | TinyLink",
-  description: "Terms of use for TinyLink.",
+  title: "Terms of Use",
+  description: "Terms of use for TinyLink link creation, redirects, analytics, and dashboard access.",
+  alternates: {
+    canonical: "/terms",
+  },
 };
 
 const sections = [

@@ -16,10 +16,45 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "TinyLink | URL shortener & stats",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "TinyLink | URL Shortener, QR Codes, and Link Analytics",
+    template: "%s | TinyLink",
+  },
   description:
-    "TinyLink lets you create branded short URLs, monitor clicks, and manage redirects in seconds.",
+    "TinyLink helps you create short links, generate QR codes, and track click analytics with a user-based dashboard.",
+  keywords: [
+    "URL shortener",
+    "short links",
+    "QR code generator",
+    "link analytics",
+    "click tracking",
+    "TinyLink",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    title: "TinyLink | URL Shortener, QR Codes, and Link Analytics",
+    description:
+      "Create short links, generate QR codes, and track click activity from a focused TinyLink dashboard.",
+    siteName: "TinyLink",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TinyLink | URL Shortener, QR Codes, and Link Analytics",
+    description:
+      "Create short links, generate QR codes, and track click activity from a focused TinyLink dashboard.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -27,6 +62,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "TinyLink",
+    url: siteUrl,
+    description:
+      "TinyLink is a URL shortener with QR code generation, click tracking, and user-based dashboard analytics.",
+  };
+
   return (
     <html lang="en">
       <head>
@@ -35,6 +79,10 @@ export default function RootLayout({
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
           crossOrigin="anonymous"
         ></script>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
       </head>
 
       <body

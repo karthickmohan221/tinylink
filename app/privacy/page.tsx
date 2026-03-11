@@ -3,8 +3,11 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | TinyLink",
-  description: "Privacy information for TinyLink users.",
+  title: "Privacy Policy",
+  description: "Privacy information for TinyLink users and link dashboard data handling.",
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 const sections = [
