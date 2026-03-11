@@ -10,6 +10,7 @@ type LinkRow = {
   clicks: number;
   last_clicked: Date | null;
   created_at: Date;
+  user_id: string | null;
 };
 
 function mapRow(row: LinkRow): LinkRecord {
@@ -20,6 +21,7 @@ function mapRow(row: LinkRow): LinkRecord {
     clicks: Number(row.clicks),
     lastClicked: row.last_clicked ? row.last_clicked.toISOString() : null,
     createdAt: row.created_at.toISOString(),
+    userId: row.user_id,
   };
 }
 
@@ -35,7 +37,15 @@ async function generateUniqueCode(attempts = 5): Promise<string> {
   throw new Error("Unable to generate a unique short code");
 }
 
-export async function listLinks(): Promise<LinkRecord[]> {
+export async function listLinks(userId?: string): Promise<LinkRecord[]> {
+  if (userId) {
+    const { rows } = await query<LinkRow>(
+      "SELECT * FROM links WHERE user_id = $1 ORDER BY created_at DESC, code ASC",
+      [userId]
+    );
+    return rows.map(mapRow);
+  }
+  // No userId = return all links (for public/anon users)
   const { rows } = await query<LinkRow>(
     "SELECT * FROM links ORDER BY created_at DESC, code ASC",
   );
@@ -55,6 +65,7 @@ export async function getLink(code: string): Promise<LinkRecord | null> {
 
 export async function createLink(
   input: LinkInput,
+  userId?: string,
 ): Promise<{ link?: LinkRecord; conflict?: boolean }> {
   let code = input.code?.trim();
 
@@ -66,8 +77,8 @@ export async function createLink(
   for (let i = 0; i < 5; i++) {
     try {
       const { rows } = await query<LinkRow>(
-        "INSERT INTO links (code, url) VALUES ($1, $2) RETURNING *",
-        [code, input.url],
+        "INSERT INTO links (code, url, user_id) VALUES ($1, $2, $3) RETURNING *",
+        [code, input.url, userId ?? null],
       );
 
       return { link: mapRow(rows[0]) };
@@ -91,11 +102,16 @@ export async function createLink(
   throw new Error("Failed to generate unique code");
 }
 
-export async function deleteLink(code: string): Promise<boolean> {
-  const { rowCount } = await query<LinkRow>(
-    "DELETE FROM links WHERE code = $1",
-    [code],
-  );
+export async function deleteLink(code: string, userId?: string): Promise<boolean> {
+  let queryText = "DELETE FROM links WHERE code = $1";
+  const params: (string | number | null)[] = [code];
+  
+  if (userId) {
+    queryText += " AND user_id = $2";
+    params.push(userId);
+  }
+  
+  const { rowCount } = await query<LinkRow>(queryText, params);
   return rowCount ? rowCount > 0 : false;
 }
 

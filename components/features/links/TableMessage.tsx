@@ -12,3 +12,4 @@ export default function TableMessage({ message }: { message: string }) {
     </tr>
   );
 }
+

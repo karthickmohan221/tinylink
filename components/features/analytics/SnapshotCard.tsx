@@ -68,3 +68,4 @@ export default function SnapshotCard({ links }: { links: LinkRecord[] }) {
     </div>
   );
 }
+

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteLink, getLink } from "@/lib/links";
+import { getTokenFromHeader, verifyToken } from "@/lib/auth";
 
 interface Params {
   params: { code: string };
@@ -21,11 +22,21 @@ export async function GET(_: Request, context: { params: Promise<Params["params"
   }
 }
 
-export async function DELETE(_: Request, context: { params: Promise<Params["params"]> }) {
+export async function DELETE(request: Request, context: { params: Promise<Params["params"]> }) {
   const { code } = await context.params;
 
   try {
-    const deleted = await deleteLink(code);
+    const token = getTokenFromHeader(request.headers.get("Authorization"));
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const auth = await verifyToken(token);
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const deleted = await deleteLink(code, auth.userId);
     if (!deleted) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }

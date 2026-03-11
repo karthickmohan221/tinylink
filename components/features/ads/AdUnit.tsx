@@ -1,4 +1,3 @@
-// components/ads/AdUnit.tsx
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -68,3 +67,4 @@ export default function AdUnit({
     </div>
   );
 }
+

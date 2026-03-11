@@ -1,7 +1,10 @@
+"use client";
+
 import { fromNow } from "@/lib/format";
 import type { LinkRecord } from "@/lib/types";
-import TableMessage from "./table-message";
 import { Copy, QrCode, Trash2, ExternalLink, BarChart2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import TableMessage from "./TableMessage";
 
 interface Props {
   links: LinkRecord[];
@@ -20,9 +23,15 @@ export default function LinksTable({
   mutate,
   setQrCode,
 }: Props) {
+  const { token } = useAuth();
+
   async function deleteLink(code: string) {
     if (confirm("Are you sure you want to delete this link?")) {
-      await fetch(`/api/links/${code}`, { method: "DELETE" });
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      await fetch(`/api/links/${code}`, { method: "DELETE", headers });
       mutate();
     }
   }
@@ -112,6 +121,6 @@ export default function LinksTable({
           </tbody>
         </table>
       </div>
-    </div>
+            </div>
   );
 }

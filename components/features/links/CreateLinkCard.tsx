@@ -1,20 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { Link, Sparkles } from "lucide-react";
+import { Link, QrCode, Sparkles } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import type { LinkRecord } from "@/lib/types";
 
 interface Props {
-  mutate: () => void;
+  mutate?: () => void;
+  onCreated?: (link: LinkRecord) => void;
 }
 
-export default function CreateLinkCard({ mutate }: Props) {
+export default function CreateLinkCard({ mutate, onCreated }: Props) {
+  const { token } = useAuth();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitMode, setSubmitMode] = useState<"link" | "qr">("link");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!token) {
+      window.dispatchEvent(new Event("auth:open-login"));
+      return;
+    }
 
     if (!url) {
       setError("URL is required");
@@ -30,11 +40,14 @@ export default function CreateLinkCard({ mutate }: Props) {
 
     setLoading(true);
 
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+
     const res = await fetch("/api/links", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({ url }),
     });
 
@@ -46,8 +59,12 @@ export default function CreateLinkCard({ mutate }: Props) {
       return;
     }
 
+    const data = await res.json();
     setUrl("");
-    mutate();
+    mutate?.();
+    if (submitMode === "qr" && data.link) {
+      onCreated?.(data.link);
+    }
   }
 
   return (
@@ -87,20 +104,45 @@ export default function CreateLinkCard({ mutate }: Props) {
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            "Creating..."
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5" />
-              Create short link
-            </>
-          )}
-        </button>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="submit"
+            disabled={loading}
+            onClick={() => setSubmitMode("link")}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading && submitMode === "link" ? (
+              "Creating..."
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Create short link
+              </>
+            )}
+          </button>
+
+          <button
+            type="submit"
+            disabled={loading}
+            onClick={() => setSubmitMode("qr")}
+            className="w-full border border-slate-300 bg-white text-slate-900 font-semibold py-3 rounded-xl hover:border-slate-950 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading && submitMode === "qr" ? (
+              "Creating..."
+            ) : (
+              <>
+                <QrCode className="w-5 h-5" />
+                Create as QR
+              </>
+            )}
+          </button>
+        </div>
+
+        {!token && (
+          <p className="text-center text-xs text-slate-500">
+            Sign in when you create a link to save it to your dashboard.
+          </p>
+        )}
 
         <div className="text-xs text-gray-500 text-center">
           Your free plan includes:
@@ -116,8 +158,8 @@ export default function CreateLinkCard({ mutate }: Props) {
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
             QR Code generation
           </div>
-        </div>
       </div>
+         </div>
     </form>
   );
 }

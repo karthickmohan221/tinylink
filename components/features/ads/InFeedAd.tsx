@@ -1,4 +1,3 @@
-// components/ads/InFeedAd.tsx
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -48,3 +47,4 @@ export default function InFeedAd({
     </div>
   );
 }
+

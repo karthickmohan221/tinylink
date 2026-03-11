@@ -60,3 +60,4 @@ export default function QrModal({ qrCode, baseUrl, onClose }: Props) {
     </div>
   );
 }
+
